@@ -19,25 +19,25 @@ export default function Page() {
       id: 'origin-of-rain',
       title: 'The Origin of Rain',
       description: 'A story from the Munda people of Jharkhand, India, about the creation of rain and its importance to life.',
-      imageUrl: 'https://via.placeholder.com/400x250?text=The+Origin+of+Rain'
+      imageUrl: '/images/rainingInHills.jpg'
     },
     {
       id: 'sacred-buffalo-song',
       title: 'The Sacred Buffalo Song',
       description: 'A traditional song from the Toda community of the Nilgiri Hills, celebrating the sacred buffaloes and their role in their culture.',
-      imageUrl: 'https://via.placeholder.com/400x250?text=The+Sacred+Buffalo+Song'
+      imageUrl: '/images/sacred_cow.png'
     },
     {
       id: 'secrets-of-the-forest',
       title: 'Secrets of the Forest',
       description: 'An ancient tale from the Gond tribe of Madhya Pradesh, India, revealing the hidden wisdom and spirits residing within the forest.',
-      imageUrl: 'https://via.placeholder.com/400x250?text=Secrets+of+the+Forest'
+      imageUrl: '/images/ForestImage.jpg'
     },
     {
       id: 'star-weaver',
       title: 'The Star Weaver',
       description: 'A mythical narrative from the Kuki people of Northeast India, describing a celestial being who weaves the stars into constellations.',
-      imageUrl: 'https://via.placeholder.com/400x250?text=The+Star+Weaver'
+      imageUrl: '/images/NightSky.jpg'
     }
   ];
 
@@ -102,7 +102,7 @@ export default function Page() {
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
           style={{
-            backgroundImage: 'url(https://via.placeholder.com/1920x1080?text=Hero+Background)'
+            backgroundImage: 'url(/images/indianElder.jpeg)'
           }}
         />
         
