@@ -1,7 +1,9 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const StoryCard = ({ 
+  id,
   imageSrc, 
   title, 
   dialect, 
@@ -9,17 +11,19 @@ const StoryCard = ({
   description 
 }) => {
   return (
-    <div className="
-      relative 
-      flex flex-col items-center text-center
-      w-full max-w-85 /* Limits width like the card in the image */
-      p-6
-      rounded-3xl
-      bg-[#BD9E60]
-      text-[#FFFFFF]
-      shadow-xl hover:shadow-2xl
-      transition-shadow duration-300
-    ">
+    <Link href={`/stories/${id}`} className="block">
+      <div className="
+        relative 
+        flex flex-col items-center text-center
+        w-full max-w-85 /* Limits width like the card in the image */
+        p-6
+        rounded-3xl
+        bg-[#BD9E60]
+        text-[#FFFFFF]
+        shadow-xl hover:shadow-2xl
+        transition-shadow duration-300
+        cursor-pointer
+      ">
       {/* Image Container */}
       <div className="relative w-full h-48 mb-6 overflow-hidden rounded-lg shadow-sm">
         <Image 
@@ -45,6 +49,7 @@ const StoryCard = ({
         </p>
       </div>
     </div>
+    </Link>
   );
 };
 

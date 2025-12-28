@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Search, ChevronDown } from 'lucide-react';
 // Importing pre-built components
 import Button from '@/components/ui/Button';
@@ -73,8 +74,8 @@ export default function ArchivePage() {
   },
   {
     id: 4,
-    imageSrc: '/images/mahabharat.jpg',
-    title: 'The Odyssey',
+    imageSrc: '/images/rainingInHills.jpg',
+    title: 'The Origin of Rain',
     dialect: 'Hindi',
     region: 'South Asia',
     description: 'Smart, scalable, intuitive, efficient, reliable, modern',
@@ -152,7 +153,7 @@ export default function ArchivePage() {
           {/* Kept this manual as the data structure differs slightly from the bottom section's requirements (needs images) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {topRatedStories.map((story) => (
-              <div key={story.id} className="flex flex-col cursor-pointer group">
+              <Link key={story.id} href={`/stories/${story.id}`} className="flex flex-col cursor-pointer group">
                 <div className="relative w-full h-[300px] mb-4 rounded-xl overflow-hidden shadow-md group-hover:shadow-xl transition-shadow">
                   <Image
                     src={story.imageSrc}
@@ -164,7 +165,7 @@ export default function ArchivePage() {
                 <h3 className="text-xl font-bold text-[#8B6F47] font-serif text-center">
                   {story.title}
                 </h3>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
@@ -178,6 +179,7 @@ export default function ArchivePage() {
             {allStories.map((story) => (
               <StoryCard 
                 key={story.id}
+                id={story.id}
                 imageSrc={story.imageSrc}
                 title={story.title}
                 dialect={story.dialect}
