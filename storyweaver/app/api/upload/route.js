@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { storage } from "@/libs/firebaseClient";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { uploadToCloudinary } from "@/libs/cloudinary";
 import { v4 as uuidv4 } from "uuid";
 
 export async function POST(req) {
@@ -16,18 +15,14 @@ export async function POST(req) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
+    const base64Audio = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-    // unique path in storage
-    const fileName = `stories/${uuidv4()}.webm`;
-    const storageRef = ref(storage, fileName);
+    const uploadResult = await uploadToCloudinary(base64Audio, "audio-only");
 
-    await uploadBytes(storageRef, buffer, {
-      contentType: "audio/webm",
+    return NextResponse.json({
+      audioUrl: uploadResult.secure_url,
+      publicId: uploadResult.public_id,
     });
-
-    const audioUrl = await getDownloadURL(storageRef);
-
-    return NextResponse.json({ audioUrl });
 
   } catch (error) {
     console.error("Audio upload error:", error);

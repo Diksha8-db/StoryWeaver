@@ -1,107 +1,90 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Play,
-  Pause,
-  Volume2,
-  Bookmark,
-  Share2,
-  Sparkles,
-  Quote,
-  Info,
-} from "lucide-react";
-
-const mockStory = {
-  title: "The Origin of Rain",
-  elderName: "Elder Awa",
-  recordingDate: "2024",
-  coverImage: "/images/indianElder.jpeg",
-  transcript: `Long ago, before the mountains touched the sky, the world was silent. The elders say that the first sound was not a voice, but the wind weaving through the cedar trees, carrying secrets from the North.
-
-In those days, the earth was parched and the rivers ran dry. The people waited, their hearts heavy with longing for the sky to open and bless the land with rain.
-
-But the rain did not come from above. Instead, it came from the music. An old man, whose name has been forgotten by all but the oldest stories, sat beneath the great oak tree at the edge of the village. He had no words left to speak, for he had told every tale he knew. So he picked up his flute, carved from a branch that had once sheltered a family of birds, and began to play.`,
-  aiContext:
-    "The 'North' often symbolizes the ancestral spirit world in this region's folklore. Winds from that direction are believed to carry messages from departed elders. The flute, in many indigenous traditions, serves as a bridge between the human and spiritual realms.",
-};
+import { ArrowLeft, Play, Pause } from "lucide-react";
 
 export default function StoryPlayerPage() {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [heights, setHeights] = useState([]);
-  const [mouse, setMouse] = useState({ x: 50, y: 50 });
+  const [stories, setStories] = useState([]);
 
-  /* Audio waveform animation */
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const [currentStory, setCurrentStory] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [waveformBars, setWaveformBars] = useState([]);
+  const audioRef = useRef(null);
+
+  /* Decorative waveform */
   useEffect(() => {
-    let interval;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setHeights(Array.from({ length: 28 }, () => Math.random() * 50 + 20));
-      }, 150);
-    }
+    setWaveformBars(Array.from({ length: 36 }, () => Math.random() * 60 + 20));
+  }, []);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const interval = setInterval(() => {
+      setWaveformBars(
+        Array.from({ length: 36 }, () => Math.random() * 60 + 20)
+      );
+    }, 300);
+
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  /* Mouse-based ambient parallax */
+  /* Fetch stories */
   useEffect(() => {
-    const handleMove = (e) => {
-      setMouse({
-        x: (e.clientX / window.innerWidth) * 100,
-        y: (e.clientY / window.innerHeight) * 100,
-      });
-    };
-    window.addEventListener("mousemove", handleMove);
-    return () => window.removeEventListener("mousemove", handleMove);
+    async function fetchStories() {
+      const res = await fetch("/api/stories");
+      const data = await res.json();
+      setStories(data.stories);
+      setCurrentStory(data.stories[0]);
+      setCurrentIndex(0);
+    }
+
+    fetchStories();
   }, []);
 
-  /* Scroll ambience */
-  useEffect(() => {
-    const handleScroll = () => {
-      document.documentElement.style.setProperty(
-        "--scroll",
-        `${window.scrollY / 600}`
-      );
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  function goToNextStory() {
+    if (currentIndex < stories.length - 1) {
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      setCurrentStory(stories[nextIndex]);
+      setIsPlaying(false);
+      audioRef.current?.pause();
+    }
+  }
 
-  const [waveformBars, setWaveformBars] = useState([]);
+  function goToPrevStory() {
+    if (currentIndex > 0) {
+      const prevIndex = currentIndex - 1;
+      setCurrentIndex(prevIndex);
+      setCurrentStory(stories[prevIndex]);
+      setIsPlaying(false);
+      audioRef.current?.pause();
+    }
+  }
 
-  useEffect(() => {
-    setWaveformBars(
-      Array.from({ length: 36 }, () => Math.random() * 60 + 20)
-    );
-  }, []);
+  /* Audio control */
+  function togglePlay() {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+
+    setIsPlaying(!isPlaying);
+  }
+
+  if (!currentStory) return null;
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#F5F2ED]">
-      {/* Grain texture */}
-      <div className="absolute inset-0 z-[60] pointer-events-none opacity-40 mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]" />
-
-      {/* Interactive ambient light */}
-      <div
-        className="absolute w-[60%] h-[60%] rounded-full bg-[#C26D48]/10 blur-[160px] transition-all duration-700"
-        style={{
-          top: `${mouse.y - 30}%`,
-          left: `${mouse.x - 30}%`,
-        }}
-      />
-      <div className="absolute bottom-0 right-0 w-[50%] h-[50%] rounded-full bg-[#8B6F47]/10 blur-[140px]" />
-
-      {/* Scroll depth */}
-      <div
-        className="absolute inset-0 bg-gradient-to-b from-transparent to-[#C26D48]/5 pointer-events-none"
-        style={{ opacity: "calc(var(--scroll) * 0.5)" }}
-      />
-
-      <div className="relative z-10 flex h-full">
+    <div className="min-h-screen bg-[#F6F3EE]">
+      <div className="flex flex-col lg:flex-row">
         {/* LEFT SIDEBAR */}
-        {/* --- LEFT SIDEBAR: STORY TOTEM --- */}
-        <aside className="w-full lg:w-[420px] lg:h-screen lg:sticky lg:top-0 px-8 py-10 flex flex-col justify-between">
+        <aside className="w-full lg:w-[420px] lg:h-screen lg:sticky lg:top-0 px-8 py-10 flex flex-col justify-between bg-[#F6F3EE]">
           <Link
             href="/archive"
             className="flex items-center gap-2 text-sm font-serif text-[#8B6F47]"
@@ -112,25 +95,19 @@ export default function StoryPlayerPage() {
 
           <div className="flex flex-col items-center text-center gap-8">
             {/* Cover */}
-            <div className="relative">
-              <div className="absolute inset-0 rounded-[28px] bg-[#C26D48]/20 blur-3xl opacity-40" />
-              <div className="relative w-[240px] aspect-[3/4] rounded-[28px] overflow-hidden shadow-xl">
-                <Image
-                  src={mockStory.coverImage}
-                  alt={mockStory.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
+            <div className="relative w-[240px] aspect-[3/4] rounded-[28px] overflow-hidden shadow-xl bg-[#E8DCCB] flex items-center justify-center">
+              <span className="text-xl tracking-widest text-[#8B6F47] font-bold">
+                ORAL STORY
+              </span>
             </div>
 
             {/* Title */}
             <div>
-              <h1 className="text-2xl font-serif font-semibold">
-                {mockStory.title}
+              <h1 className="text-3xl lg:text-4xl font-serif font-semibold leading-tight text-black mb-3">
+                {currentStory.title}
               </h1>
-              <p className="text-xs tracking-widest uppercase text-[#C26D48]">
-                {mockStory.elderName} · {mockStory.recordingDate}
+              <p className="text-xs tracking-widest uppercase text-black mt-3">
+                {currentStory.speakerName} · {currentStory.region}
               </p>
             </div>
 
@@ -147,96 +124,117 @@ export default function StoryPlayerPage() {
               ))}
             </div>
 
+            {/* Audio */}
+            <audio ref={audioRef} src={currentStory.audioUrl} />
+
             {/* Play Button */}
             <button
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={togglePlay}
               className="w-16 h-16 rounded-full bg-[#C26D48] text-white flex items-center justify-center shadow-lg hover:scale-110 transition"
             >
               {isPlaying ? (
-                <Pause size={26} fill="white" />
+                <Pause size={26} />
               ) : (
-                <Play size={26} fill="white" className="ml-1" />
+                <Play size={26} className="ml-1" />
               )}
             </button>
+
+            {/* Meta */}
+            <p className="text-sm text-gray-600 tracking-wide">
+              Language: {currentStory.languageName}
+            </p>
           </div>
 
-          <p className="text-[10px] tracking-[0.3em] text-center text-gray-300">
+          <p className="text-[10px] tracking-[0.3em] text-center text-gray-500">
             ORAL HISTORY ARCHIVE
           </p>
         </aside>
 
         {/* RIGHT CONTENT */}
-        <main className="flex-1 overflow-y-auto bg-white/40 scroll-smooth">
-          <div className="max-w-4xl mx-auto px-5 sm:px-8 lg:px-20 py-16 sm:py-24">
-            {/* Header */}
-            <header className="mb-16 flex justify-between items-center border-b border-black/5 pb-8">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-white rounded-xl text-[#C26D48]">
-                  <Sparkles size={18} />
-                </div>
-                <div>
-                  <p className="text-[10px] tracking-widest uppercase text-gray-400">
-                    Oral Manuscript
-                  </p>
-                  <p className="text-sm italic text-gray-600">
-                    Archived {mockStory.recordingDate}
-                  </p>
-                </div>
-              </div>
-              <Share2 className="text-gray-400" size={18} />
-            </header>
-
-            {/* Manuscript */}
-            <article className="relative">
-              <Quote className="absolute -left-10 -top-10 w-24 h-24 text-black/3" />
-              <div className="font-serif text-[#333] text-base md:text-lg leading-[1.9] space-y-8">
-                {mockStory.transcript.split("\n\n").map((p, i) => (
-                  <p key={i} className="hover:text-[#1F1F1F] transition-colors">
-                    <span className="first-letter:text-5xl md:first-letter:text-6xl first-letter:font-bold first-letter:text-[#C26D48] first-letter:mr-4 first-letter:float-left first-letter:mt-2">
-                      {p.charAt(0)}
-                    </span>
-                    {p.slice(1)}
-                  </p>
+        <main className="flex-1 bg-white flex flex-col">
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto px-6 sm:px-10 py-14">
+            <div className="max-w-3xl mx-auto font-serif text-black flex flex-col gap-10 leading-[1.9]">
+              {/* Transcript */}
+              <section>
+                {currentStory.transcript.split("\n\n").map((p, i) => (
+                  <p key={i}>{p}</p>
                 ))}
-              </div>
-            </article>
+              </section>
 
-            {/* AI Insight */}
-            <section className="mt-24">
-              <div className="relative bg-[#FDFCFB] p-10 rounded-[40px] border border-black/5">
-                <Info className="absolute top-8 right-8 opacity-10" size={60} />
-                <h4 className="text-[10px] tracking-[0.4em] uppercase text-[#C26D48] mb-6">
-                  AI Cultural Insight
-                </h4>
-                <p className="font-serif text-base md:text-lg italic text-[#555] max-w-2xl">
-                  "{mockStory.aiContext}"
-                </p>
-              </div>
-            </section>
+              {/* Translation */}
+              {currentStory.translatedText && (
+                <section className="bg-[#F9F6F1] p-6 rounded-xl">
+                  <h4 className="text-md lg:text-lg font-semibold tracking-widest uppercase text-[#C26D48] mb-2">
+                    Translation
+                  </h4>
+                  <p className="italic">{currentStory.translatedText}</p>
+                </section>
+              )}
 
-            <footer className="mt-32 text-center text-[10px] tracking-[0.5em] text-gray-300 uppercase">
-              Document End
-            </footer>
+              {/* Summary + Cultural Notes Group */}
+              <section className="flex flex-col gap-12">
+                {/* Summary */}
+                <div className="border-l-2 border-[#C26D48]/30 pl-6">
+                  <h4 className="text-md lg:text-lg tracking-widest uppercase text-[#C26D48] font-semibold mb-2">
+                    Summary
+                  </h4>
+                  <p>{currentStory.summary}</p>
+                </div>
+
+                {/* Cultural Notes */}
+                {currentStory.culturalNotes?.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-md lg:text-lg font-semibold tracking-widest uppercase text-[#C26D48]">
+                      Cultural Notes
+                    </h4>
+                    <ul className="list-disc pl-6 space-y-2 text-sm text-[#444]">
+                      {currentStory.culturalNotes.map((note, i) => (
+                        <li key={i}>{note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </section>
+            </div>
+          </div>
+
+          {/* Sticky Bottom Navigation */}
+          <div className="sticky bottom-0 bg-white border-t">
+            <div className="max-w-3xl mx-auto px-6 sm:px-10 py-4 flex justify-between items-center">
+              <button
+                onClick={goToPrevStory}
+                disabled={currentIndex === 0}
+                className={`px-5 py-2.5 rounded-full border text-sm tracking-wide transition
+                  ${
+                    currentIndex === 0
+                      ? "border-gray-500 text-gray-500 cursor-not-allowed"
+                      : "border-[#C26D48] text-[#C26D48] hover:bg-[#C26D48] hover:text-white"
+                  }`}
+              >
+                ← Previous
+              </button>
+
+              <p className="text-[10px] tracking-widest text-gray-500 uppercase">
+                Story {currentIndex + 1} of {stories.length}
+              </p>
+
+              <button
+                onClick={goToNextStory}
+                disabled={currentIndex === stories.length - 1}
+                className={`px-5 py-2.5 rounded-full border text-sm tracking-wide transition
+                  ${
+                    currentIndex === stories.length - 1
+                      ? "border-gray-500 text-gray-500 cursor-not-allowed"
+                      : "border-[#C26D48] text-[#C26D48] hover:bg-[#C26D48] hover:text-white"
+                  }`}
+              >
+                Next →
+              </button>
+            </div>
           </div>
         </main>
       </div>
-
-      {/* Mobile floating play button */}
-      <div className="fixed bottom-6 right-6 lg:hidden z-50">
-        <button
-          onClick={() => setIsPlaying(!isPlaying)}
-          className="w-14 h-14 rounded-full bg-[#C26D48] text-white shadow-2xl flex items-center justify-center"
-        >
-          {isPlaying ? <Pause /> : <Play className="ml-1" />}
-        </button>
-      </div>
-
-      {/* Text selection */}
-      <style jsx global>{`
-        ::selection {
-          background: rgba(194, 109, 72, 0.25);
-        }
-      `}</style>
     </div>
   );
 }

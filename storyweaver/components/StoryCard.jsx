@@ -15,12 +15,12 @@ const StoryCard = ({
       <div className="
         relative 
         flex flex-col items-center text-center
-        w-full max-w-85 /* Limits width like the card in the image */
+        w-full max-w-100 /* Limits width like the card in the image */
         p-6
         rounded-3xl
         bg-[#BD9E60]
         text-[#FFFFFF]
-        shadow-xl hover:shadow-2xl
+        shadow-xl  hover:shadow-2xl
         transition-shadow duration-300
         cursor-pointer
       ">

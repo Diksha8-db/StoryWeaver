@@ -1,51 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, Play, Pause } from "lucide-react";
-
-const mockStory = {
-  id: "1",
-  title: "The Origin of Rain",
-  elderName: "Elder Awa",
-  recordingDate: "2024",
-  audioUrl: "/audio/placeholder.mp3",
-  coverImage: "/images/indianElder.jpeg",
-  transcript: `Before paths were drawn and before villages learned to stay in one place, there stood a tree at the center of the plain. It was not the tallest, nor the oldest, but it listened better than any living thing.
-
-The elders said the tree had roots so deep they touched yesterday.
-
-When people passed by, they would rest in its shade and speak without meaning to. They told the tree their worries, their hopes, and sometimes the names of those they had lost. The tree did not answer. It only listened. But it remembered every word.
-
-During dry years, when the wind scraped the earth bare and children counted clouds that never arrived, the people noticed something strange. At dawn, droplets formed on the tree’s leaves—even when the sky was clear. They fell slowly, one by one, darkening the dust below.
-
-An elder placed her palm against the trunk and felt a quiet warmth, like breath.
-
-“These are not tears,” she said. “They are memories returning.”
-
-That night, the villagers gathered. One by one, they spoke the names they feared would disappear: grandparents, travelers, children taken too soon. With each name, the tree’s branches stirred, though there was no wind.
-
-By morning, clouds gathered—not heavy with storm, but full and patient. Rain followed, steady and kind. The ground softened. Seeds long buried woke and pushed upward.
-
-From then on, when someone feared being forgotten, they would whisper their name to the tree. And when the land grew thirsty, the people returned—not to beg for rain, but to remember together.
-
-This is why, even now, when rain falls without warning, some say it is not the sky that speaks—but the earth, finally answering back.`,
-  aiContext:
-    "The 'North' often symbolizes the ancestral spirit world in this region's folklore.",
-};
+import { useParams } from "next/navigation";
 
 export default function StoryPlayerPage() {
+  const {id} = useParams()
+  const [story, setStory] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [waveformBars, setWaveformBars] = useState([]);
+  const audioRef = useRef(null);
 
+  /* Decorative waveform */
   useEffect(() => {
-    setWaveformBars(
-      Array.from({ length: 36 }, () => Math.random() * 60 + 20)
-    );
+    setWaveformBars(Array.from({ length: 36 }, () => Math.random() * 60 + 20));
   }, []);
 
-  /* Optional: animate when playing */
   useEffect(() => {
     if (!isPlaying) return;
 
@@ -58,13 +29,43 @@ export default function StoryPlayerPage() {
     return () => clearInterval(interval);
   }, [isPlaying]);
 
+  /* Fetch stories */
+  useEffect(() => {
+    async function fetchStory() {
+      const res = await fetch(`/api/stories/${id}`);
+
+      console.log(res)
+      const data = await res.json();
+      if (data.success) {
+        setStory({ id, ...data.story });
+      } else {
+        console.error(data.error);
+      }
+    }
+
+    fetchStory();
+  }, [id]);
+
+  /* Audio control */
+  function togglePlay() {
+    if (!audioRef.current) return;
+
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+
+    setIsPlaying(!isPlaying);
+  }
+
+  if (story === null) return <p className="p-6 text-red-500">Story not found</p>;
+
   return (
     <div className="min-h-screen bg-[#F6F3EE]">
       <div className="flex flex-col lg:flex-row">
-
         {/* LEFT SIDEBAR */}
-        <aside className="w-full lg:w-[420px] lg:h-screen lg:sticky lg:top-0 px-8 py-10 flex flex-col justify-between">
-
+        <aside className="w-full lg:w-[420px] lg:h-screen lg:sticky lg:top-0 px-8 py-10 flex flex-col justify-between bg-[#F6F3EE]">
           <Link
             href="/archive"
             className="flex items-center gap-2 text-sm font-serif text-[#8B6F47]"
@@ -74,27 +75,20 @@ export default function StoryPlayerPage() {
           </Link>
 
           <div className="flex flex-col items-center text-center gap-8">
-
             {/* Cover */}
-            <div className="relative">
-              <div className="absolute inset-0 rounded-[28px] bg-[#C26D48]/20 blur-3xl opacity-40" />
-              <div className="relative w-[240px] aspect-[3/4] rounded-[28px] overflow-hidden shadow-xl">
-                <Image
-                  src={mockStory.coverImage}
-                  alt={mockStory.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
+            <div className="relative w-[240px] aspect-[3/4] rounded-[28px] overflow-hidden shadow-xl bg-[#E8DCCB] flex items-center justify-center">
+              <span className="text-xl tracking-widest text-[#8B6F47] font-bold">
+                ORAL STORY
+              </span>
             </div>
 
             {/* Title */}
             <div>
-              <h1 className="text-2xl font-serif font-semibold">
-                {mockStory.title}
+              <h1 className="text-3xl lg:text-4xl font-serif font-semibold leading-tight text-black mb-3">
+                {story.title}
               </h1>
-              <p className="text-xs tracking-widest uppercase text-[#C26D48]">
-                {mockStory.elderName} · {mockStory.recordingDate}
+              <p className="text-xs tracking-widest uppercase text-black mt-3">
+                {story.speakerName} · {story.region}
               </p>
             </div>
 
@@ -111,40 +105,82 @@ export default function StoryPlayerPage() {
               ))}
             </div>
 
+            {/* Audio */}
+            <audio ref={audioRef} src={story.audioUrl} />
+
             {/* Play Button */}
             <button
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={togglePlay}
               className="w-16 h-16 rounded-full bg-[#C26D48] text-white flex items-center justify-center shadow-lg hover:scale-110 transition"
             >
               {isPlaying ? (
-                <Pause size={26} fill="white" />
+                <Pause size={26} />
               ) : (
-                <Play size={26} fill="white" className="ml-1" />
+                <Play size={26} className="ml-1" />
               )}
             </button>
+
+            {/* Meta */}
+            <p className="text-sm text-gray-600 tracking-wide">
+              Language: {story.languageName}
+            </p>
           </div>
 
-          <p className="text-[10px] tracking-[0.3em] text-center text-gray-300">
+          <p className="text-[10px] tracking-[0.3em] text-center text-gray-500">
             ORAL HISTORY ARCHIVE
           </p>
         </aside>
 
         {/* RIGHT CONTENT */}
-        <main className="flex-1 bg-white px-6 sm:px-10 py-14">
-          <div className="max-w-3xl mx-auto font-serif text-black leading-[1.9] space-y-8">
-            {mockStory.transcript.split("\n\n").map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
+        <main className="flex-1 bg-white flex flex-col">
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto px-6 sm:px-10 py-14">
+            <div className="max-w-3xl mx-auto font-serif text-black flex flex-col gap-10 leading-[1.9]">
+              {/* Transcript */}
+              <section>
+                {story.transcript.split("\n\n").map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </section>
 
-            <aside className="mt-12 border-l-2 border-[#C26D48]/30 pl-6">
-              <h4 className="text-[10px] tracking-widest uppercase text-[#C26D48] mb-2">
-                Cultural Insight
-              </h4>
-              <p className="italic text-sm text-[#555]">
-                {mockStory.aiContext}
-              </p>
-            </aside>
+              {/* Translation */}
+              {story.translatedText && (
+                <section className="bg-[#F9F6F1] p-6 rounded-xl">
+                  <h4 className="text-md lg:text-lg font-semibold tracking-widest uppercase text-[#C26D48] mb-2">
+                    Translation
+                  </h4>
+                  <p className="italic">{story.translatedText}</p>
+                </section>
+              )}
+
+              {/* Summary + Cultural Notes Group */}
+              <section className="flex flex-col gap-12">
+                {/* Summary */}
+                <div className="border-l-2 border-[#C26D48]/30 pl-6">
+                  <h4 className="text-md lg:text-lg tracking-widest uppercase text-[#C26D48] font-semibold mb-2">
+                    Summary
+                  </h4>
+                  <p>{story.summary}</p>
+                </div>
+
+                {/* Cultural Notes */}
+                {story.culturalNotes?.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-md lg:text-lg font-semibold tracking-widest uppercase text-[#C26D48]">
+                      Cultural Notes
+                    </h4>
+                    <ul className="list-disc pl-6 space-y-2 text-sm text-[#444]">
+                      {story.culturalNotes.map((note, i) => (
+                        <li key={i}>{note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </section>
+            </div>
           </div>
+
+          
         </main>
       </div>
     </div>

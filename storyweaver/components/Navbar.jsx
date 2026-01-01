@@ -21,7 +21,7 @@ export default function Navbar() {
   // handling redirection of explore button
   const handleRedirect = () => {
     setIsOpen(true);
-    router.push('/stories')
+    router.push('/record')
   }
 
   return (

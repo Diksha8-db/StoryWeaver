@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
-import { SpeechClient } from "@google-cloud/speech";
+import speech from '@google-cloud/speech';
 
-const client = new SpeechClient({
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+// Initialize the client using env vars
+const client = new speech.SpeechClient({
+  credentials: {
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'), 
+  },
+  projectId: process.env.GOOGLE_PROJECT_ID,
 });
 
 export async function POST(req) {
   try {
     const formData = await req.formData();
     const file = formData.get("audio");
-    const languageCode = formData.get("languageCode") || "hi-IN";
+    const languageCode = formData.get("languageCode") || "en-IN";
 
 
     if (!file) {

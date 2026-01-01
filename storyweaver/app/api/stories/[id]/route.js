@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { db } from "@/libs/firebaseClient";
 import { doc, getDoc } from "firebase/firestore";
 
+// fetch stories based on id
 export async function GET(req, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(

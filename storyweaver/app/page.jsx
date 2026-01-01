@@ -302,7 +302,7 @@ export default function Page() {
       </section>
 
       {/* Featured Stories Section */}
-      <section id="featured-stories" className="py-16 md:py-24 bg-gray-50">
+      {/* <section id="featured-stories" className="py-16 md:py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 
             className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-12 md:mb-16"
@@ -319,7 +319,7 @@ export default function Page() {
                 className="group bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer"
               >
                 {/* Image */}
-                <div className="relative w-full h-48 bg-gray-200 overflow-hidden">
+                {/* <div className="relative w-full h-48 bg-gray-200 overflow-hidden">
                   <img
                     src={story.imageUrl}
                     alt={story.title}
@@ -328,7 +328,7 @@ export default function Page() {
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
+                {/* <div className="p-6">
                   <h3 
                     className="text-xl font-bold mb-2 text-gray-900 group-hover:text-[#C07049] transition-colors duration-200"
                     style={{ fontFamily: 'var(--font-playfair)' }}
@@ -345,8 +345,8 @@ export default function Page() {
               </Link>
             ))}
           </div>
-        </div>
-      </section>
+        </div> */}
+      {/* </section> */} 
 
       {/* Footer */}
       <footer className="py-8 bg-white border-t border-gray-200">
